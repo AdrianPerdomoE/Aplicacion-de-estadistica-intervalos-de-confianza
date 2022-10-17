@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "js-stats": "^1.0.5",
+    "simple-statistics": "^7.7.6"
+  }
+}
