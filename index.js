@@ -6,7 +6,7 @@ function intervaloMediaPoblacionNormalVarianzaConocida(X,S,n,alfa){
 }
 
 function intervaloMediaPoblacionNormalVarianzaDesconocidaMuestraPeque(X,S,n,alfa){
-    let inv = obtenertinvAlfaMedios(alfa,n)
+    let inv = obtenertinvAlfaMedios(alfa,n-1)
     return {'Inferior':X-inv*(S/(n**(1/2))),'Superior':X+inv*(S/(n**(1/2)))}
 }
 
@@ -65,7 +65,7 @@ function obtenerZinvAlfaMedios(alfa){
     return Z.invCumulativeProbability(alfaMedios)
 }
 function obtenertinvAlfaMedios(alfa,n){
-    let t =  new jsStats.TDistribution(n-1)
+    let t =  new jsStats.TDistribution(n)
     let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
     return t.invCumulativeProbability(alfaMedios)
 }
