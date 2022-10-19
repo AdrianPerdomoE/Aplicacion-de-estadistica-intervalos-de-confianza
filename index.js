@@ -52,12 +52,41 @@ function intervaloRazonVarianzas(S1,S2,n1,n2,alfa){
 function obtenerChiAlfa(alfa,n){//ESTE METODO AUN NO ESTA CORRECTAMENTE IMPLEMENTADO BUSCAR LIBRERIA O FORMA DE HACERLO
     var cs_distribution = new jsStats.ChiSquareDistribution(n);
     let alfaDerecha = 1 -  alfa // como el resultado esta en cola derecha, se considera el complemento
-    return cs_distribution.cumulativeProbability(alfaDerecha); 
+    return   invChi(cs_distribution,alfaDerecha,n)
+}
+function invChi(chi,alfa,n){
+    let valorActual = chi.cumulativeProbability(n)
+    while((Math.abs(valorActual-alfa)/alfa)*100 > 0.00001){
+        if(valorActual>alfa){
+           n = n-n*(valorActual-alfa)
+           valorActual =chi.cumulativeProbability(n)
+        }
+        else{
+            n = n+n*Math.abs(valorActual-alfa)
+           valorActual =chi.cumulativeProbability(n)
+        }
+    }
+    return n
+}
+function invF(F,alfa,n1,n2){
+    n = n1/n2
+    let valorActual = F.cumulativeProbability(n)
+    while((Math.abs(valorActual-alfa)/alfa)*100 > 0.00001){
+        if(valorActual>alfa){
+           n = n-n*(valorActual-alfa)
+           valorActual =F.cumulativeProbability(n)
+        }
+        else{
+            n = n+n*Math.abs(valorActual-alfa)
+           valorActual =F.cumulativeProbability(n)
+        }
+    }
+    return n
 }
 function obtenerFinvAlfa(alfa,n1,n2){//ESTE METODO AUN NO ESTA CORRECTAMENTE IMPLEMENTADO BUSCAR LIBRERIA O FORMA DE HACERLO
     var f_distribution = new jsStats.FDistribution(n1, n2);
     let alfaDerecha = 1 - alfa // como el resultado esta en cola derecha, se considera el complemento
-    return f_distribution.invCumulativeProbability(alfaDerecha)
+    return invF(f_distribution,alfaDerecha,n1,n2)
 }
 function obtenerZinvAlfaMedios(alfa){
     let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
@@ -72,4 +101,4 @@ function obtenertinvAlfaMedios(alfa,n){
 
 
 console.log(intervaloDiferenciaMediaVarianzaConocidaMuestraGrande(159.001,150.143,10,15,2.5,2.8,0.05))
-console.log(obtenertinvAlfaMedios(0.05,21))  
+console.log(obtenerFinvAlfa(0.025,60,30))  
