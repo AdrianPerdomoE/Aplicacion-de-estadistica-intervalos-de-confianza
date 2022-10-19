@@ -1,45 +1,75 @@
 const jsStats = require('js-stats')
 
 function intervaloMediaPoblacionNormalVarianzaConocida(X,S,n,alfa){
-    let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
-    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let ZInv = Z.invCumulativeProbability(alfaMedios)
+    let ZInv = obtenerZinvAlfaMedios(alfa)
     return {'Inferior':X-ZInv*(S/(n**(1/2))),'Superior':X+ZInv*(S/(n**(1/2)))}
 }
 
 function intervaloMediaPoblacionNormalVarianzaDesconocidaMuestraPeque(X,S,n,alfa){
-    let t =  new jsstats.TDistribution(n-1)
-    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let inv = t.invCumulativeProbability(alfaMedios)
+    let inv = obtenertinvAlfaMedios(alfa,n)
     return {'Inferior':X-inv*(S/(n**(1/2))),'Superior':X+inv*(S/(n**(1/2)))}
 }
 
 function intervaloMediaPoblacionDesconocidaMuestraGrande(X,S,n,alfa){
-    let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
-    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let ZInv = Z.invCumulativeProbability(alfaMedios)
+    let ZInv = obtenerZinvAlfaMedios(alfa)
     return {'Inferior':X-ZInv*(S/(n**(1/2))),'Superior':X+ZInv*(S/(n**(1/2)))}
 }
 
 function intervaloProporcionMuestraGrande(P,n,alfa){
-    let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
-    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let ZInv = Z.invCumulativeProbability(alfaMedios)
+    let ZInv = obtenerZinvAlfaMedios(alfa)
     return {'Inferior':P-ZInv*((P*(1-P)/n)**(1/2)),'Superior':P+ZInv*((P*(1-P)/n)**(1/2))}
 }
 function intervaloDiferenciaProporcionMuestraGrande(P1,P2,n1,n2,alfa){
-    let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
-    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let ZInv = Z.invCumulativeProbability(alfaMedios)
+    let ZInv = obtenerZinvAlfaMedios(alfa)
     return {'Inferior':(P1-P2)-ZInv*((P1*(1-P1)/n1 +P2*(1-P2)/n2 )**(1/2)),'Superior':(P1-P2)+ZInv*((P1*(1-P1)/n1 +P2*(1-P2)/n2 )**(1/2))}
 }
 
-function intervaloDiferenciaMediaVarianzaConocidaMuestraGrande(X,Y,n1,n2,s1,s2,alfa){//s1 y s2 son la varianza, van al cuadrado si se conoce desviacion
+function intervaloDiferenciaMediaVarianzaConocidaMuestraGrande(X,Y,n1,n2,s1,s2,alfa){
+    let ZInv = obtenerZinvAlfaMedios(alfa)
+    return {'Inferior':(X-Y)-ZInv*((s1**2/n1+s2**2/n2)**(1/2)),'Superior':(X-Y)+ZInv*((s1**2/n1+s2**2/n2)**(1/2))}
+}
+function intervaloDiferenciaMediaVarianzadesconocidaIgualesMuestraPeque(X,Y,n1,n2,s1,s2,alfa){
+    let Inv = obtenertinvAlfaMedios(alfa,n1+n2-2)
+    let sp = (((n1-1*s1**2+(n2-1)*s2**2))/(n1+n2-2))**(1/2)
+    return {'Inferior':(X-Y)-Inv*sp*((1/n1+1/n2)**(1/2)),'Superior':(X-Y)+ Inv*sp*((1/n1+1/n2)**(1/2))}
+}
+function intervaloDiferenciaMediaVarianzadesconocidaDiferentesMuestraPeque(X,Y,n1,n2,s1,s2,alfa){
+    let v = (s1**2/n1 +s2**2/n2)**2/((s1**2)**2/(n1-1) + (s2**2)**2/(n2-1))
+    let Inv = obtenertinvAlfaMedios(alfa,v)
+  
+    return {'Inferior':(X-Y)-Inv*((s1**2/n1+s2**2/n2)**(1/2)),'Superior':(X-Y)+Inv*((s1**2/n1+s2**2/n2)**(1/2))}
+}
+function intervaloVarianzaPoblacionNormal(S,n,alfa){
+    let invMenor = obtenerChiAlfa(alfa/2,n-1)
+    let invMayor = obtenerChiAlfa(1-(alfa/2),n-1)
+   return {'Inferior':(n-1)*S**2/invMenor,'Superior':(n-1)*S**2/invMayor}
+}
+function intervaloRazonVarianzas(S1,S2,n1,n2,alfa){
+    let invMenor = obtenerFinvAlfa(alfa/2,n1-1,n2-1)
+    let invMayor = obtenerFinvAlfa(alfa/2,n2-1,n1-1)
+   return {'Inferior':S1**2/(invMenor*S2**2),'Superior':S1**2/S2**2*invMayor}
+}
+function obtenerChiAlfa(alfa,n){//ESTE METODO AUN NO ESTA CORRECTAMENTE IMPLEMENTADO BUSCAR LIBRERIA O FORMA DE HACERLO
+    var cs_distribution = new jsStats.ChiSquareDistribution(n);
+    let alfaDerecha = 1 -  alfa // como el resultado esta en cola derecha, se considera el complemento
+    return cs_distribution.cumulativeProbability(alfaDerecha); 
+}
+function obtenerFinvAlfa(alfa,n1,n2){//ESTE METODO AUN NO ESTA CORRECTAMENTE IMPLEMENTADO BUSCAR LIBRERIA O FORMA DE HACERLO
+    var f_distribution = new jsStats.FDistribution(n1, n2);
+    let alfaDerecha = 1 - alfa // como el resultado esta en cola derecha, se considera el complemento
+    return f_distribution.invCumulativeProbability(alfaDerecha)
+}
+function obtenerZinvAlfaMedios(alfa){
     let Z = new jsStats.NormalDistribution(0, 1);//Normal estandar
     let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
-    let ZInv = Z.invCumulativeProbability(alfaMedios)
-    return {'Inferior':(X-Y)-ZInv*((s1/n1+s2/n2)**(1/2)),'Superior':(X-Y)-ZInv*((s1/n1+s2/n2)**(1/2))}
+    return Z.invCumulativeProbability(alfaMedios)
+}
+function obtenertinvAlfaMedios(alfa,n){
+    let t =  new jsStats.TDistribution(n-1)
+    let alfaMedios = 1 - (alfa/2) // como el resultado esta en cola derecha, se considera el complemento
+    return t.invCumulativeProbability(alfaMedios)
 }
 
 
-
+console.log(intervaloDiferenciaMediaVarianzaConocidaMuestraGrande(159.001,150.143,10,15,2.5,2.8,0.05))
+console.log(obtenertinvAlfaMedios(0.05,21))  
